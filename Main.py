@@ -84,17 +84,19 @@ def download_youtube_music(url):
                 pass
 
         ydl_opts = {
-            'format': 'bestaudio/best',
+            'format': 'bestaudio[ext=m4a]/bestaudio[ext=webm]/bestaudio/best',
             'outtmpl': f'{DOWNLOAD_DIR}/%(title)s.%(ext)s',
             'postprocessors': [{
                 'key': 'FFmpegExtractAudio',
                 'preferredcodec': 'mp3',
-                'preferredquality': '320',
+                'preferredquality': '192',
             }],
             'quiet': True,
             'no_warnings': True,
             'socket_timeout': 30,
             'cookiefile': 'cookies.txt',
+            'ignoreerrors': False,
+            'retries': 3,
         }
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
