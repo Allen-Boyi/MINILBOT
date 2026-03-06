@@ -4,7 +4,7 @@ import os
 import glob
 import yt_dlp
 
-BOT_TOKEN = "8327757816:AAFCwSHZMrOyEwx4QC_Vj_JAgCHbaVEyLa8"
+BOT_TOKEN = ""
 bot = telebot.TeleBot(BOT_TOKEN)
 API_KEY = "gifted"
 BASE_API_URL = "https://api.giftedtech.co.ke/api"
