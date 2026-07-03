@@ -1,0 +1,3 @@
+# This file ensures the logs directory is tracked by Git
+# Bot logs, error logs, and debug information will be stored here
+# Log files should be rotated to prevent disk space issues
