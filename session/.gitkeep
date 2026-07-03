@@ -1,0 +1,3 @@
+# This file ensures the session directory is tracked by Git
+# WhatsApp session files will be stored here
+# Only sessions starting with CIARA-IV~ are accepted
