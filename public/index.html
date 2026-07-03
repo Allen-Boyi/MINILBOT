@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CIARA-IV Dashboard</title>
+<style>
+  :root {
+    --bg: #f2f2f7; --card: #ffffff; --text: #000000;
+    --muted: #6e6e73; --border: #e5e5ea;
+    --accent: #000000; --accent-text: #ffffff;
+    --danger: #ff3b30; --success: #34c759;
+    --warn: #ff9500; --radius: 14px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #000000; --card: #1c1c1e; --text: #ffffff;
+      --muted: #98989d; --border: #2c2c2e;
+      --accent: #ffffff; --accent-text: #000000;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Segoe UI, sans-serif;
+    background: var(--bg); color: var(--text); min-height: 100vh;
+  }
+  .container { max-width: 520px; margin: 0 auto; padding: 28px 18px 80px; }
+  h1 { font-size: 30px; font-weight: 700; margin: 8px 0 4px; letter-spacing: -0.5px; }
+  h3 { font-size: 16px; font-weight: 600; margin: 0 0 14px; }
+  .subtitle { color: var(--muted); font-size: 15px; margin: 0 0 22px; }
+
+  .card {
+    background: var(--card); border-radius: var(--radius);
+    padding: 18px; margin-bottom: 14px;
+    border: 1px solid var(--border);
+  }
+  label { display: block; font-size: 12px; font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase; color: var(--muted); margin-bottom: 7px; }
+  input, select, textarea {
+    width: 100%; padding: 13px 14px; border-radius: 10px;
+    border: 1px solid var(--border); background: var(--bg);
+    color: var(--text); font-size: 16px; margin-bottom: 13px; outline: none;
+  }
+  input:focus, select:focus { border-color: var(--accent); }
+  button {
+    width: 100%; padding: 14px; border-radius: 10px; border: none;
+    background: var(--accent); color: var(--accent-text);
+    font-size: 16px; font-weight: 600; cursor: pointer; transition: opacity 0.15s;
+  }
+  button.secondary { background: var(--bg); color: var(--text); border: 1px solid var(--border); }
+  button.danger { background: var(--danger); color: #fff; }
+  button.small { padding: 8px 14px; font-size: 13px; width: auto; }
+  button:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  .row { display: flex; gap: 10px; }
+  .row > * { flex: 1; }
+
+  .pill {
+    display: inline-block; padding: 4px 10px; border-radius: 20px;
+    font-size: 12px; font-weight: 600; margin: 3px 3px 3px 0;
+    border: 1px solid var(--border); color: var(--muted); background: var(--bg);
+  }
+  .pill.green { background: rgba(52,199,89,0.12); color: var(--success); border-color: var(--success); }
+  .pill.blue  { background: rgba(0,122,255,0.12); color: #007aff; border-color: #007aff; }
+  .pill.orange{ background: rgba(255,149,0,0.12); color: var(--warn); border-color: var(--warn); }
+
+  .msg { font-size: 14px; padding: 11px 13px; border-radius: 10px; margin-bottom: 13px; }
+  .msg.error   { background: rgba(255,59,48,0.1); color: var(--danger); }
+  .msg.success { background: rgba(52,199,89,0.1); color: var(--success); }
+
+  .hidden { display: none !important; }
+
+  .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+
+  /* Group items */
+  .group-item { border-bottom: 1px solid var(--border); padding: 14px 0; }
+  .group-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .group-jid { font-size: 11px; color: var(--muted); word-break: break-all; margin-bottom: 10px; font-family: monospace; }
+  .setting-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .setting-row label { margin: 0; }
+  .setting-row select { width: auto; margin: 0; padding: 7px 10px; font-size: 14px; }
+
+  /* Toggle switch */
+  .toggle-wrap { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .toggle { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider {
+    position: absolute; cursor: pointer; inset: 0;
+    background: var(--border); border-radius: 24px; transition: 0.25s;
+  }
+  .toggle-slider:before {
+    content: ''; position: absolute; width: 20px; height: 20px;
+    left: 2px; bottom: 2px; background: white;
+    border-radius: 50%; transition: 0.25s; box-shadow: 0 1px 3px rgba(0,0,0,.3);
+  }
+  input:checked + .toggle-slider { background: var(--success); }
+  input:checked + .toggle-slider:before { transform: translateX(20px); }
+  .toggle-label { font-size: 15px; }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 6px; margin-bottom: 16px; }
+  .tab {
+    flex: 1; padding: 10px; border-radius: 10px; border: 1px solid var(--border);
+    background: var(--card); color: var(--muted); font-weight: 600; font-size: 14px;
+    cursor: pointer; text-align: center;
+  }
+  .tab.active { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+
+  /* Owner user rows */
+  .user-row { display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--border); padding: 12px 0; }
+  .user-row:last-child { border-bottom: none; }
+  .user-phone { font-size: 15px; flex: 1; }
+  .user-row select { margin: 0; padding: 7px 10px; font-size: 14px; width: auto; }
+
+  .spinner { text-align: center; padding: 30px 0; color: var(--muted); }
+  .empty { text-align: center; padding: 24px 0; color: var(--muted); font-size: 15px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- ───── LOGIN ───── -->
+  <div id="view-login">
+    <div style="margin-bottom:32px;">
+      <h1>CIARA-IV</h1>
+      <p class="subtitle">WhatsApp group management platform</p>
+    </div>
+
+    <div class="card" id="phone-step">
+      <div id="login-msg"></div>
+      <label>WhatsApp number with country code</label>
+      <input type="tel" id="phone-input" placeholder="e.g. 27821234567">
+      <button id="send-otp-btn">Send code via WhatsApp</button>
+    </div>
+
+    <div class="card hidden" id="code-step">
+      <p class="subtitle" style="margin-bottom:14px;">Enter the 6-digit code sent to your WhatsApp</p>
+      <div id="code-msg"></div>
+      <label>Verification code</label>
+      <input type="text" id="code-input" maxlength="6" placeholder="••••••" inputmode="numeric">
+      <button id="verify-otp-btn">Verify &amp; Continue</button>
+      <button class="secondary" style="margin-top:10px;" id="back-btn">← Use a different number</button>
+    </div>
+  </div>
+
+  <!-- ───── DASHBOARD ───── -->
+  <div id="view-dashboard" class="hidden">
+    <div class="topbar">
+      <h1>Dashboard</h1>
+      <button class="secondary small" id="logout-btn">Log out</button>
+    </div>
+    <p class="subtitle" id="acct-sub"></p>
+
+    <!-- plan pills -->
+    <div class="card" id="plan-card"></div>
+
+    <!-- tabs -->
+    <div class="tabs">
+      <div class="tab active" data-tab="groups">Groups</div>
+      <div class="tab" data-tab="settings">Account</div>
+      <div class="tab hidden" data-tab="owner" id="owner-tab">Owner</div>
+    </div>
+
+    <!-- GROUPS TAB -->
+    <div id="tab-groups">
+      <div class="card">
+        <h3>Add a group</h3>
+        <label>WhatsApp invite link</label>
+        <input type="text" id="invite-input" placeholder="https://chat.whatsapp.com/...">
+        <button id="add-group-btn">Add group</button>
+        <div id="add-msg"></div>
+      </div>
+      <div class="card">
+        <h3>Your groups</h3>
+        <div id="groups-list"><div class="spinner">Loading…</div></div>
+      </div>
+    </div>
+
+    <!-- SETTINGS TAB -->
+    <div id="tab-settings" class="hidden">
+      <div class="card">
+        <h3>Plan &amp; billing</h3>
+        <p id="plan-info" class="subtitle"></p>
+        <div id="tier-list"></div>
+      </div>
+    </div>
+
+    <!-- OWNER TAB -->
+    <div id="tab-owner" class="hidden">
+      <div class="card">
+        <h3>All users</h3>
+        <div id="owner-users"><div class="spinner">Loading…</div></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+<script>
+// ─────────── helpers ───────────
+const $id = id => document.getElementById(id);
+let me = null;
+
+function showMsg(el, text, type) {
+  el.innerHTML = text ? `<div class="msg ${type}">${text}</div>` : '';
+}
+
+async function api(path, opts = {}) {
+  const res = await fetch(path, {
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    ...opts
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || 'Something went wrong.');
+  return data;
+}
+
+// ─────────── tabs ───────────
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    const name = tab.dataset.tab;
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    ['groups','settings','owner'].forEach(t => {
+      const el = $id(`tab-${t}`);
+      if (el) el.classList.toggle('hidden', t !== name);
+    });
+    if (name === 'owner') loadOwnerUsers();
+  });
+});
+
+// ─────────── login ───────────
+let pendingPhone = '';
+
+$id('send-otp-btn').addEventListener('click', async () => {
+  const phone = $id('phone-input').value.trim();
+  showMsg($id('login-msg'), '', '');
+  if (!phone) return showMsg($id('login-msg'), 'Enter your WhatsApp number.', 'error');
+  $id('send-otp-btn').disabled = true;
+  try {
+    await api('/api/auth/request-otp', { method: 'POST', body: JSON.stringify({ phone }) });
+    pendingPhone = phone;
+    $id('phone-step').classList.add('hidden');
+    $id('code-step').classList.remove('hidden');
+    setTimeout(() => $id('code-input').focus(), 50);
+  } catch (e) {
+    showMsg($id('login-msg'), e.message, 'error');
+  } finally {
+    $id('send-otp-btn').disabled = false;
+  }
+});
+
+$id('back-btn').addEventListener('click', () => {
+  $id('code-step').classList.add('hidden');
+  $id('phone-step').classList.remove('hidden');
+  showMsg($id('code-msg'), '', '');
+});
+
+$id('verify-otp-btn').addEventListener('click', async () => {
+  const code = $id('code-input').value.trim();
+  if (!code) return;
+  $id('verify-otp-btn').disabled = true;
+  try {
+    await api('/api/auth/verify-otp', { method: 'POST', body: JSON.stringify({ phone: pendingPhone, code }) });
+    await loadDashboard();
+  } catch (e) {
+    showMsg($id('code-msg'), e.message, 'error');
+  } finally {
+    $id('verify-otp-btn').disabled = false;
+  }
+});
+
+$id('logout-btn').addEventListener('click', async () => {
+  await api('/api/auth/logout', { method: 'POST' });
+  location.reload();
+});
+
+// ─────────── dashboard ───────────
+async function loadDashboard() {
+  try {
+    me = await api('/api/auth/me');
+  } catch {
+    $id('view-login').classList.remove('hidden');
+    $id('view-dashboard').classList.add('hidden');
+    return;
+  }
+  $id('view-login').classList.add('hidden');
+  $id('view-dashboard').classList.remove('hidden');
+  $id('acct-sub').textContent = `+${me.phone} · ${me.limits.label}`;
+
+  const tierColors = { free: '', basic: 'blue', plus: 'orange', pro: 'green', business: 'green' };
+  $id('plan-card').innerHTML =
+    `<span class="pill ${tierColors[me.tier] || ''}">${me.limits.label}</span>` +
+    `<span class="pill">${me.groupCount} / ${me.limits.maxGroups} groups</span>` +
+    (me.limits.antibadword ? '<span class="pill green">Antibadword ✓</span>' : '') +
+    (me.isOwner ? '<span class="pill orange">Owner 👑</span>' : '');
+
+  if (me.isOwner) {
+    $id('owner-tab').classList.remove('hidden');
+  }
+
+  await loadGroups();
+  loadTierInfo();
+}
+
+// ─────────── groups ───────────
+async function loadGroups() {
+  $id('groups-list').innerHTML = '<div class="spinner">Loading…</div>';
+  try {
+    const { groups } = await api('/api/groups');
+    if (!groups.length) {
+      $id('groups-list').innerHTML = '<div class="empty">No groups yet — add one above.</div>';
+      return;
+    }
+    $id('groups-list').innerHTML = groups.map(g => groupHtml(g)).join('');
+    groups.forEach(g => wireGroup(g));
+  } catch (e) {
+    $id('groups-list').innerHTML = `<div class="msg error">${e.message}</div>`;
+  }
+}
+
+function groupHtml(g) {
+  const s = g.settings;
+  const hasAntibadword = me?.limits?.antibadword;
+  return `
+<div class="group-item" id="gi-${CSS.escape(g.jid)}">
+  <div class="group-jid">${g.jid}</div>
+
+  <div class="setting-row">
+    <label>🔗 Antilink</label>
+    <select class="sel-antilink">
+      <option value="off"    ${s.antilink==='off'    ? 'selected':''}>Off</option>
+      <option value="delete" ${s.antilink==='delete' ? 'selected':''}>Delete msg</option>
+      <option value="kick"   ${s.antilink==='kick'   ? 'selected':''}>Delete + kick</option>
+    </select>
+  </div>
+
+  ${hasAntibadword ? `
+  <div class="setting-row">
+    <label>🤬 Bad language</label>
+    <select class="sel-antibadword">
+      <option value="off"    ${s.antibadword==='off'    ? 'selected':''}>Off</option>
+      <option value="warn"   ${s.antibadword==='warn'   ? 'selected':''}>Warn</option>
+      <option value="delete" ${s.antibadword==='delete' ? 'selected':''}>Delete</option>
+      <option value="kick"   ${s.antibadword==='kick'   ? 'selected':''}>Kick</option>
+    </select>
+  </div>` : ''}
+
+  <label class="toggle-wrap" style="margin:6px 0 12px;">
+    <span class="toggle">
+      <input type="checkbox" class="tog-welcome" ${s.welcome ? 'checked':''}>
+      <span class="toggle-slider"></span>
+    </span>
+    <span class="toggle-label">👋 Welcome messages</span>
+  </label>
+
+  <button class="danger small remove-btn">Leave &amp; remove group</button>
+</div>`;
+}
+
+function wireGroup(g) {
+  const el = document.getElementById(`gi-${CSS.escape(g.jid)}`);
+  if (!el) return;
+
+  const patch = async (body) => {
+    try {
+      await api(`/api/groups/${encodeURIComponent(g.jid)}/settings`, { method: 'PATCH', body: JSON.stringify(body) });
+    } catch (e) { alert(e.message); }
+  };
+
+  el.querySelector('.sel-antilink')?.addEventListener('change', e => patch({ antilink: e.target.value }));
+  el.querySelector('.sel-antibadword')?.addEventListener('change', e => patch({ antibadword: e.target.value }));
+  el.querySelector('.tog-welcome')?.addEventListener('change', e => patch({ welcome: e.target.checked }));
+  el.querySelector('.remove-btn')?.addEventListener('click', async () => {
+    if (!confirm('Remove this group? The bot will leave it.')) return;
+    try {
+      await api(`/api/groups/${encodeURIComponent(g.jid)}`, { method: 'DELETE' });
+      loadDashboard();
+    } catch (e) { alert(e.message); }
+  });
+}
+
+$id('add-group-btn').addEventListener('click', async () => {
+  const inviteLink = $id('invite-input').value.trim();
+  showMsg($id('add-msg'), '', '');
+  if (!inviteLink) return;
+  $id('add-group-btn').disabled = true;
+  try {
+    await api('/api/groups/add', { method: 'POST', body: JSON.stringify({ inviteLink }) });
+    $id('invite-input').value = '';
+    showMsg($id('add-msg'), '✅ Group added! The bot has joined.', 'success');
+    loadGroups();
+    me = await api('/api/auth/me');
+    $id('acct-sub').textContent = `+${me.phone} · ${me.limits.label}`;
+  } catch (e) {
+    showMsg($id('add-msg'), e.message, 'error');
+  } finally {
+    $id('add-group-btn').disabled = false;
+  }
+});
+
+// ─────────── account / tiers ───────────
+async function loadTierInfo() {
+  $id('plan-info').textContent = `You are on the ${me.limits.label} plan.`;
+  try {
+    const { tiers } = await api('/api/tiers');
+    const tierColors = { free: '', basic: 'blue', plus: 'orange', pro: 'green', business: 'green' };
+    $id('tier-list').innerHTML = Object.entries(tiers).map(([key, t]) => `
+      <div style="padding:12px 0;border-bottom:1px solid var(--border);">
+        <span class="pill ${tierColors[key] || ''}">${t.label}</span>
+        ${t.priceUsd ? `<strong>$${t.priceUsd}/mo</strong>` : '<strong>Free</strong>'}
+        <br><small style="color:var(--muted);">
+          Up to ${t.maxGroups === 9999 || t.maxGroups > 100 ? 'unlimited' : t.maxGroups} group(s)
+          · antilink ${t.antilink ? '✓' : '✗'}
+          · antibadword ${t.antibadword ? '✓' : '✗'}
+          · own number ${t.ownNumber ? '✓' : '✗'}
+        </small>
+      </div>
+    `).join('');
+  } catch(e) {}
+}
+
+// ─────────── owner panel ───────────
+async function loadOwnerUsers() {
+  $id('owner-users').innerHTML = '<div class="spinner">Loading…</div>';
+  try {
+    const [{ users }, { tiers }] = await Promise.all([
+      api('/api/owner/users'),
+      api('/api/tiers')
+    ]);
+    const tierNames = Object.keys(tiers);
+    $id('owner-users').innerHTML = users.map(u => `
+      <div class="user-row" data-phone="${u.phone}">
+        <div class="user-phone">+${u.phone} ${u.isOwner ? '👑' : ''}</div>
+        <select class="owner-tier">
+          ${tierNames.map(t => `<option value="${t}" ${t===u.tier?'selected':''}>${tiers[t].label}</option>`).join('')}
+        </select>
+        ${!u.isOwner ? '<button class="secondary small promote-btn">Promote</button>' : ''}
+      </div>
+    `).join('');
+
+    document.querySelectorAll('#owner-users .user-row').forEach(row => {
+      const phone = row.dataset.phone;
+      row.querySelector('.owner-tier').addEventListener('change', async e => {
+        try { await api(`/api/owner/users/${phone}/tier`, { method: 'POST', body: JSON.stringify({ tier: e.target.value }) }); }
+        catch(e) { alert(e.message); }
+      });
+      row.querySelector('.promote-btn')?.addEventListener('click', async () => {
+        if (!confirm(`Promote +${phone} to owner?`)) return;
+        try { await api(`/api/owner/users/${phone}/promote`, { method: 'POST' }); loadOwnerUsers(); }
+        catch(e) { alert(e.message); }
+      });
+    });
+  } catch(e) {
+    $id('owner-users').innerHTML = `<div class="msg error">${e.message}</div>`;
+  }
+}
+
+// ─────────── boot ───────────
+loadDashboard();
+</script>
+</body>
+</html>
