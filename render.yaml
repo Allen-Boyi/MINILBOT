@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: ciara-iv
+    env: node
+    buildCommand: npm install
+    startCommand: node server.js
+    plan: starter
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: OWNER_NUMBER
+        value: 27847826044
