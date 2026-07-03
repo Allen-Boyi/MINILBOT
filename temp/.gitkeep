@@ -1,0 +1,3 @@
+# This file ensures the temp directory is tracked by Git
+# Temporary files like downloads, conversions will be stored here
+# Files in this directory should be automatically cleaned up
